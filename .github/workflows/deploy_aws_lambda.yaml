@@ -42,3 +42,12 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Deploy Lambda function with container image
+        uses: aws-actions/aws-lambda-deploy@v1.1.0
+        with:
+          function-name: telegram-agent-lambda
+          package-type: Image
+          image-uri: ${{ steps.build-image.outputs.image }}
+          role: ${{ secrets.AWS_LAMBDA_EXECUTION_ROLE }}
+          environment: '{"OPENAI_API_KEY":"${{ secrets.OPENAI_API_KEY }}","ELEVENLABS_API_KEY":"${{ secrets.ELEVENLABS_API_KEY }}","TELEGRAM_BOT_TOKEN":"${{ secrets.TELEGRAM_BOT_TOKEN }}"}'
