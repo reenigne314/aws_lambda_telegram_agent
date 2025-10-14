@@ -56,18 +56,17 @@ def lambda_handler(event, context):
     print(json.dumps(event, indent=2))
     
     try:
-        # body = event.get("body", "{}")
+        body = event.get("body", "{}")
         
-        # if isinstance(body, str):
-        #     update_data = json.loads(body)
-        # else:
-        #     update_data = body
+        if isinstance(body, str):
+            update_data = json.loads(body)
+        else:
+            update_data = body
         
-        # print("**Parsed update data**")
-        # print(json.dumps(update_data, indent=2))
+        print("**Parsed update data**")
+        print(json.dumps(update_data, indent=2))
     
-        response = get_agent_response({"messages": "Generate a picture of yourself"}, user_id=1234567890)
-        # asyncio.run(process_update(update_data))
+        asyncio.run(process_update(update_data))
         
         return {
             "statusCode": 200,
@@ -83,4 +82,3 @@ def lambda_handler(event, context):
             "statusCode": 500,
             "body": json.dumps({"ok": False, "error": str(e)})
         }
-    
