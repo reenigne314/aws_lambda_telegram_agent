@@ -12,6 +12,7 @@ from telegram.ext import (
 
 from telegram_agent_aws.infrastructure.openai_utils import get_openai_client
 from telegram_agent_aws.infrastructure.elevenlabs_utils import get_elevenlabs_client
+from telegram_agent_aws.application.conversation_service.generate_response import get_agent_response
 
 
 openai_client = get_openai_client()
@@ -21,8 +22,8 @@ elevenlabs_client = get_elevenlabs_client()
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_message = update.message.text
 
-    response = safe_graph_invoke(
-        {"messages": user_message}, config)
+    response = get_agent_response(
+        {"messages": user_message}, user_id=update.message.from_user.id)
 
     await send_response(update, context, response)
 
@@ -40,8 +41,8 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
     os.remove(file_path)
 
-    response = safe_graph_invoke(
-        {"messages": transcription.text}, config)
+    response = get_agent_response(
+        {"messages": transcription.text}, user_id=update.message.from_user.id)
 
     await send_response(update, context, response)
 
@@ -85,8 +86,8 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     combined_message = f"{user_caption} [IMAGE_ANALYSIS] {description}".strip()
 
     # Step 4: Invoke graph
-    response = safe_graph_invoke(
-        {"messages": combined_message}, config)
+    response = get_agent_response(
+        {"messages": combined_message}, user_id=update.message.from_user.id)
 
     # Step 5: Add description as caption for the outgoing image response
     if "messages" in response and isinstance(response["messages"][-1], dict):
