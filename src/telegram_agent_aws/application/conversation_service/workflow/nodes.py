@@ -9,7 +9,7 @@ from PIL import Image
 from langchain_core.messages import SystemMessage, RemoveMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 
-from telegram_agent_aws.domain.prompts import ROUTER_SYSTEM_PROMPT, SYSTEM_PROMPT, IMAGE_GENERATION_PROMPT
+from telegram_agent_aws.domain.prompts import ROUTER_SYSTEM_PROMPT, SYSTEM_PROMPT
 from telegram_agent_aws.application.conversation_service.workflow.state import TelegramAgentState
 from telegram_agent_aws.application.conversation_service.workflow.tools import get_retriever_tool
 from telegram_agent_aws.infrastructure.openai_utils import get_openai_client
@@ -24,7 +24,7 @@ elevenlabs_client = get_elevenlabs_client()
 
 class RouterResponse(BaseModel):
     response_type: str = Field(
-        description="The response type to give to the user. It must be one of: 'text', 'image' or 'audio'"
+        description="The response type to give to the user. It must be one of: 'text' or 'audio'"
     )
 
 def router_node(state: TelegramAgentState):
@@ -96,20 +96,5 @@ def generate_final_response_node(state: TelegramAgentState):
 
         return {"audio_buffer": audio_bytes}
 
-    elif state["response_type"] == "image":
-
-        result = openai_client.images.generate(
-            model="gpt-image-1",
-            prompt=IMAGE_GENERATION_PROMPT.prompt + state["messages"][-1].content,
-            quality="high",
-            size="1024x1024")
-
-        image_base64 = result.data[0].b64_json
-        image_bytes = base64.b64decode(image_base64)
-
-        return {"image_buffer": image_bytes}
-
     else:
         return state
-
-

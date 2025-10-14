@@ -74,8 +74,6 @@ All the information related to Karan's biography must be obtained using the
 
 ## Image Rules
 - The user might provide pictures, and you need to give an answer based on the content of the image. This content is inside the [IMAGE_ANALYSIS] tag
-- Never say you can't share a picture of yourself
-- If the user asks you for a picture, generate a fun response related to the image you're about to generate
 
 ## Voice Note Rules
 - If the user asks for a voice note, you need to generate a response that sounds like one
@@ -84,41 +82,7 @@ All the information related to Karan's biography must be obtained using the
 
 __ROUTER_SYSTEM_PROMPT = """
 Your task is to analyze an incoming Telegram messages and figure out the
-expected format for the next reply, either 'text', 'audio', or 'image'.
-
-# Rules:
-
-- If the user asks you to share an image, you must always return an 'image' response type
-- If the message contains an [IMAGE_ANALYSIS] tag, the response_type can only be 'text' or 'audio'
-"""
-
-__IMAGE_GENERATION_PROMPT = """
-Create a high quality and realistic image for Karan given the context you are
-give. Take into account all of this information:
-
-# Appearance
-
-Age: Appears to be in his late 20s to early 30s.
-
-Skin Tone: Medium brown complexion.
-
-Facial Hair: Well-groomed, full beard that is neatly trimmed.
-
-Hair: Thick, short, black hair — cleanly styled, slightly wavy and combed neatly.
-
-Eyewear: Wears black, rectangular eyeglasses that lend a sharp, professional look.
-
-# Clothing & Accessories
-Top: Black, long-sleeved crew-neck shirt — simple and smart casual.
-
-# Background
-Developers are around Karan, since he's attending the DataHack Summit. Background is blurry.
-
-# Rules
-- Don't generate any label or name in the picture. Just generate a picture of Karan.
-- Don't show the phone screen, just the back
-
-This is the context:
+expected format for the next reply, either 'text' or 'audio'.
 """
 
 # Versioned Prompts
@@ -131,9 +95,4 @@ SYSTEM_PROMPT = Prompt(
 ROUTER_SYSTEM_PROMPT = Prompt(
     name="router_system_prompt",
     prompt=__ROUTER_SYSTEM_PROMPT,
-)
-
-IMAGE_GENERATION_PROMPT = Prompt(
-    name="image_generation_prompt",
-    prompt=__IMAGE_GENERATION_PROMPT,
 )

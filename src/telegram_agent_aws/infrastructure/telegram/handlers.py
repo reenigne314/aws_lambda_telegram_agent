@@ -102,11 +102,6 @@ async def send_response(update: Update, context: ContextTypes.DEFAULT_TYPE, resp
         audio_bytes = response.get("audio_buffer")
         if audio_bytes:
             await update.message.reply_voice(voice=audio_bytes)
-
-    elif response_type == "image":
-        image_buffer = response.get("image_buffer")
-        if image_buffer:
-            await update.message.reply_photo(photo=image_buffer)
             
     else:
         await update.message.reply_text("Sorry, I can't talk right now buddy! 😔")
