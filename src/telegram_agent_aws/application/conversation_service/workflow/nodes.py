@@ -1,0 +1,121 @@
+import random
+from pydantic import BaseModel, Field
+import base64
+from io import BytesIO
+from uuid import uuid4
+import PIL
+
+from telegram_agent_aws.domain.prompts import IMAGE_GENERATION_PROMPT
+
+from langchain_core.messages import SystemMessage, RemoveMessage, HumanMessage
+from langchain_openai import ChatOpenAI
+
+from telegram_agent_aws.domain.prompts import ROUTER_SYSTEM_PROMPT, SYSTEM_PROMPT
+from telegram_agent_aws.application.conversation_service.workflow.state import TelegramAgentState
+from telegram_agent_aws.application.conversation_service.workflow.tools import get_retriever_tool
+from telegram_agent_aws.infrastructure.openai_utils import get_openai_client
+from telegram_agent_aws.infrastructure.elevenlabs_utils import get_elevenlabs_client
+
+from telegram_agent_aws.config import settings
+
+
+openai_client = get_openai_client()
+elevenlabs_client = get_elevenlabs_client()
+
+
+class RouterResponse(BaseModel):
+    response_type: str = Field(
+        description="The response type to give to the user. It must be one of: 'text', 'image' or 'audio'"
+    )
+
+def router_node(state: TelegramAgentState):
+    llm = ChatOpenAI(model=settings.OPENAI_MODEL, api_key=settings.OPENAI_API_KEY)
+
+    sys_msg = SystemMessage(content=ROUTER_SYSTEM_PROMPT.prompt)
+    llm_structured = llm.with_structured_output(RouterResponse)
+
+    response = llm_structured.invoke([sys_msg, state["messages"][-1]])
+
+    if response.response_type == "text":
+        if random.random() > 0.5:
+            # This is a way to give more realism to the bot. 
+            # From time to time, the Telegram Agent will send voice notes,
+            # even if the "response_type" is "text"!
+            return {"response_type": "audio"}
+
+    return {"response_type": response.response_type}
+
+
+def generate_text_response_node(state: TelegramAgentState):
+    llm = ChatOpenAI(model=settings.OPENAI_MODEL, api_key=settings.OPENAI_API_KEY)
+    llm_with_tools = llm.bind_tools([get_retriever_tool()])
+
+    summary = state.get("summary", "")
+
+    if summary:
+        system_message = f"{SYSTEM_PROMPT.prompt} \n Summary of conversation earlier: {summary}"
+        messages = [SystemMessage(content=system_message)] + state["messages"]
+
+    else:
+        messages = [SystemMessage(content=SYSTEM_PROMPT.prompt)] + state["messages"]
+
+    response = llm_with_tools.invoke(messages)
+
+    return {"messages": response}
+
+
+def summarize_conversation_node(state: TelegramAgentState):
+    llm = ChatOpenAI(model=settings.OPENAI_MODEL, api_key=settings.OPENAI_API_KEY)
+
+    summary = state.get("summary", "")
+
+    if summary:
+        summary_message = (
+            f"This is summary of the conversation to date: {summary}\n\n"
+            "Extend the summary by taking into account the new messages above:"
+        )
+
+    else:
+        summary_message = "Create a summary of the conversation above:"
+
+    messages = state["messages"] + [HumanMessage(content=summary_message)]
+    response = llm.invoke(messages)
+
+    delete_messages = [RemoveMessage(id=m.id) for m in state["messages"][:-2]]
+
+    return {"summary": response.content, "messages": delete_messages}
+
+
+def generate_final_response_node(state: TelegramAgentState):
+    if state["response_type"] == "audio":
+        audio = elevenlabs_client.text_to_speech.convert(
+            text=state["messages"][-1].content,
+            voice_id=settings.ELEVENLABS_VOICE_ID,
+            model_id=settings.ELEVENLABS_MODEL_ID)
+
+        audio_bytes = b"".join(audio)
+
+        return {"audio_buffer": audio_bytes}
+
+    elif state["response_type"] == "image":
+
+        result = openai_client.images.generate(
+            model="gpt-image-1",
+            prompt=IMAGE_GENERATION_PROMPT.prompt + state["messages"][-1].content,
+            quality="high",
+            size="1024x1024")
+
+        image_base64 = result.data[0].b64_json
+        image_bytes = base64.b64decode(image_base64)
+
+        image = PIL.Image.open(BytesIO(image_bytes))
+        image_path = f"{str(uuid4())}.png"
+
+        image.save(image_path)
+        
+        return {"image_path": image_path}
+
+    else:
+        return state
+
+

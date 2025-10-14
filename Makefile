@@ -3,7 +3,7 @@
 ROLE_NAME := lambda-ex
 POLICY_DOC := file://trust-policy.json
 
-.PHONY: all create-role clean
+.PHONY: all create-role clean index-qdrant
 
 all: create-role
 
@@ -30,3 +30,9 @@ create-role: trust-policy.json
 clean:
 	@rm -f trust-policy.json
 	@echo 'Cleaned up generated files.'
+
+# Index documents to Qdrant
+index-qdrant:
+	@echo 'Indexing documents to Qdrant...'
+	uv run python -c "from telegram_agent_aws.application.rag_indexing_service.index_documents import index_documents; index_documents()"
+	@echo 'Documents indexed successfully.'

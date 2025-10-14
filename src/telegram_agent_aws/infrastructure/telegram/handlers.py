@@ -1,0 +1,118 @@
+import os
+import base64
+
+from telegram import Update
+from telegram.ext import (
+    Application,
+    MessageHandler,
+    CommandHandler,
+    ContextTypes,
+    filters,
+)
+
+from telegram_agent_aws.infrastructure.openai_utils import get_openai_client
+from telegram_agent_aws.infrastructure.elevenlabs_utils import get_elevenlabs_client
+
+
+openai_client = get_openai_client()
+elevenlabs_client = get_elevenlabs_client()
+
+
+async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_message = update.message.text
+
+    response = safe_graph_invoke(
+        {"messages": user_message}, config)
+
+    await send_response(update, context, response)
+
+
+async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    voice = update.message.voice
+    file = await context.bot.get_file(voice.file_id)
+    file_path = "voice.ogg"
+    await file.download_to_drive(file_path)
+
+    with open(file_path, "rb") as audio_file:
+        transcription = openai_client.audio.transcriptions.create(
+            file=audio_file,
+            model="whisper-1",
+        )
+    os.remove(file_path)
+
+    response = safe_graph_invoke(
+        {"messages": transcription.text}, config)
+
+    await send_response(update, context, response)
+
+
+async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    photo = update.message.photo[-1]
+    file = await context.bot.get_file(photo.file_id)
+    file_path = "image.jpg"
+    await file.download_to_drive(file_path)
+
+    with open(file_path, "rb") as img_file:
+        base64_image = base64.b64encode(img_file.read()).decode("utf-8")
+
+    os.remove(file_path)
+
+    # Step 1: Get vision response
+    vision_response = openai_client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": "Describe what you see in the picture"},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{base64_image}",
+                        },
+                    },
+                ],
+            }
+        ],
+    )
+
+    description = vision_response.choices[0].message.content.strip()
+
+    # Step 2: Extract user caption if provided
+    user_caption = update.message.caption or ""
+
+    # Step 3: Compose full message for graph
+    combined_message = f"{user_caption} [IMAGE_ANALYSIS] {description}".strip()
+
+    # Step 4: Invoke graph
+    response = safe_graph_invoke(
+        {"messages": combined_message}, config)
+
+    # Step 5: Add description as caption for the outgoing image response
+    if "messages" in response and isinstance(response["messages"][-1], dict):
+        response["messages"][-1]["caption"] = description
+
+    await send_response(update, context, response)
+
+
+async def send_response(update: Update, context: ContextTypes.DEFAULT_TYPE, response: dict):
+    last_message = response["messages"][-1]
+    content = last_message.content
+    response_type = response["response_type"]
+
+    if response_type == "text":
+        await update.message.reply_text(content)
+
+    elif response_type == "audio":
+        audio_bytes = response.get("audio_buffer")
+        if audio_bytes:
+            await update.message.reply_voice(voice=audio_bytes)
+
+    elif response_type == "image":
+        img_path = response.get("image_path")
+        if img_path and os.path.exists(img_path):
+            with open(img_path, "rb") as img_file:
+                await update.message.reply_photo(photo=img_file)
+
+    else:
+        await update.message.reply_text("Sorry, I can't talk right now buddy! 😔")
