@@ -22,5 +22,6 @@ class Settings(BaseSettings):
         default="telegram_agent_aws",
         description="Project name for Comet ML and Opik tracking.",
     )
+    OPIK_CONFIG_PATH: str = "/tmp/.opik.config"
 
 settings = Settings()
