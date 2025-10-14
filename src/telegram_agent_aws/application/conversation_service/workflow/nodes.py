@@ -5,12 +5,11 @@ from io import BytesIO
 from uuid import uuid4
 from PIL import Image
 
-from telegram_agent_aws.domain.prompts import IMAGE_GENERATION_PROMPT
 
 from langchain_core.messages import SystemMessage, RemoveMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 
-from telegram_agent_aws.domain.prompts import ROUTER_SYSTEM_PROMPT, SYSTEM_PROMPT
+from telegram_agent_aws.domain.prompts import ROUTER_SYSTEM_PROMPT, SYSTEM_PROMPT, IMAGE_GENERATION_PROMPT
 from telegram_agent_aws.application.conversation_service.workflow.state import TelegramAgentState
 from telegram_agent_aws.application.conversation_service.workflow.tools import get_retriever_tool
 from telegram_agent_aws.infrastructure.openai_utils import get_openai_client
@@ -108,12 +107,7 @@ def generate_final_response_node(state: TelegramAgentState):
         image_base64 = result.data[0].b64_json
         image_bytes = base64.b64decode(image_base64)
 
-        image = Image.open(BytesIO(image_bytes))
-        image_path = f"{str(uuid4())}.png"
-
-        image.save(image_path)
-        
-        return {"image_path": image_path}
+        return {"image_buffer": image_bytes}
 
     else:
         return state

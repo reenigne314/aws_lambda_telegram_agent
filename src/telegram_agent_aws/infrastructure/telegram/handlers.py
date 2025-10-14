@@ -1,4 +1,3 @@
-from operator import ge
 import os
 import base64
 
@@ -111,10 +110,9 @@ async def send_response(update: Update, context: ContextTypes.DEFAULT_TYPE, resp
             await update.message.reply_voice(voice=audio_bytes)
 
     elif response_type == "image":
-        img_path = response.get("image_path")
-        if img_path and os.path.exists(img_path):
-            with open(img_path, "rb") as img_file:
-                await update.message.reply_photo(photo=img_file)
-
+        image_buffer = response.get("image_buffer")
+        if image_buffer:
+            await update.message.reply_photo(photo=image_buffer)
+            
     else:
         await update.message.reply_text("Sorry, I can't talk right now buddy! 😔")

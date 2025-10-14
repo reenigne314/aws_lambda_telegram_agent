@@ -5,4 +5,4 @@ class TelegramAgentState(MessagesState):
     summary: str
     response_type: str
     audio_buffer: bytes
-    image_path: str
+    image_buffer: bytes
