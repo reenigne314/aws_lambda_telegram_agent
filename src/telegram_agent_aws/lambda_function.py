@@ -11,9 +11,9 @@ from telegram_agent_aws.application.conversation_service.generate_response impor
 
 async def process_update(update_data: dict):
     """Process a Telegram update asynchronously."""
-    update = Update.de_json(update_data, bot=None)
-    
     bot = Bot(token=settings.TELEGRAM_BOT_TOKEN)
+    
+    update = Update.de_json(update_data, bot=bot)
     
     class WebhookContext:
         def __init__(self, bot):
