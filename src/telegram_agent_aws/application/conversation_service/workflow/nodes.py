@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 import base64
 from io import BytesIO
 from uuid import uuid4
-import PIL
+from PIL import Image
 
 from telegram_agent_aws.domain.prompts import IMAGE_GENERATION_PROMPT
 
@@ -108,7 +108,7 @@ def generate_final_response_node(state: TelegramAgentState):
         image_base64 = result.data[0].b64_json
         image_bytes = base64.b64decode(image_base64)
 
-        image = PIL.Image.open(BytesIO(image_bytes))
+        image = Image.open(BytesIO(image_bytes))
         image_path = f"{str(uuid4())}.png"
 
         image.save(image_path)
