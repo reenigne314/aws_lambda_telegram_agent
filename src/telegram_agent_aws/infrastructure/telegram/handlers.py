@@ -25,7 +25,7 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
     voice = update.message.voice
     file = await context.bot.get_file(voice.file_id)
-    file_path = "voice.ogg"
+    file_path = "/tmp/voice.ogg"
     await file.download_to_drive(file_path)
 
     with open(file_path, "rb") as audio_file:
