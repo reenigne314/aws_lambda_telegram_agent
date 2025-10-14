@@ -3502,7 +3502,6 @@ dependencies = [
     { name = "pypdf" },
     { name = "python-telegram-bot" },
     { name = "qdrant-client" },
-    { name = "tenacity" },
     { name = "typer" },
 ]
 
@@ -3534,7 +3533,6 @@ requires-dist = [
     { name = "pypdf", specifier = ">=6.1.1" },
     { name = "python-telegram-bot", specifier = ">=22.5" },
     { name = "qdrant-client", specifier = ">=1.15.1" },
-    { name = "tenacity", specifier = ">=9.1.2" },
     { name = "typer" },
 ]
 
