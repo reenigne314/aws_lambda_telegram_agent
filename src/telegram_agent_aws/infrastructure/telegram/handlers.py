@@ -50,7 +50,7 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     photo = update.message.photo[-1]
     file = await context.bot.get_file(photo.file_id)
-    file_path = "image.jpg"
+    file_path = "/tmp/image.jpg"
     await file.download_to_drive(file_path)
 
     with open(file_path, "rb") as img_file:
