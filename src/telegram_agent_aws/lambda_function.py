@@ -66,7 +66,7 @@ def lambda_handler(event, context):
         # print("**Parsed update data**")
         # print(json.dumps(update_data, indent=2))
     
-        response = get_agent_response({"messages": "Hello, how are you?"}, user_id=1234567890)
+        response = get_agent_response({"messages": "Generate a picture of yourself"}, user_id=1234567890)
         print(response)
         # asyncio.run(process_update(update_data))
         
