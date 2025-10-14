@@ -2,13 +2,7 @@ import os
 import base64
 
 from telegram import Update
-from telegram.ext import (
-    Application,
-    MessageHandler,
-    CommandHandler,
-    ContextTypes,
-    filters,
-)
+from telegram.ext import ContextTypes
 
 from telegram_agent_aws.infrastructure.openai_utils import get_openai_client
 from telegram_agent_aws.infrastructure.elevenlabs_utils import get_elevenlabs_client
