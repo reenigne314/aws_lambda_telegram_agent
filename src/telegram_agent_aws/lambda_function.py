@@ -1,66 +1,13 @@
 import json
-import requests
 import asyncio
 from telegram import Update, Bot
-from telegram.ext import ContextTypes
 
 from telegram_agent_aws.config import settings
 from telegram_agent_aws.infrastructure.telegram.handlers import handle_text, handle_voice, handle_photo
 
 
-def check_and_set_webhook(bot_token: str, webhook_endpoint: str) -> dict:
-    """
-    Checks if a webhook exists for the Telegram bot.
-    If the webhook doesn't exist or is different, sets it to the provided endpoint.
-    
-    Args:
-        bot_token: The Telegram bot token
-        webhook_endpoint: The webhook URL to set
-        
-    Returns:
-        dict: Response from the API with status information
-    """
-    # Check current webhook info
-    get_info_url = f"https://api.telegram.org/bot{bot_token}/getWebhookInfo"
-    response = requests.get(get_info_url)
-    webhook_info = response.json()
-    
-    if not webhook_info.get("ok"):
-        return {"error": "Failed to get webhook info", "details": webhook_info}
-    
-    current_url = webhook_info.get("result", {}).get("url", "")
-    
-    # Check if webhook already exists and matches
-    if current_url == webhook_endpoint:
-        return {
-            "status": "unchanged",
-            "message": f"Webhook already set to {webhook_endpoint}",
-            "webhook_info": webhook_info["result"]
-        }
-    
-    # Set the webhook
-    set_webhook_url = f"https://api.telegram.org/bot{bot_token}/setWebhook?url={webhook_endpoint}"
-    response = requests.get(set_webhook_url)
-    result = response.json()
-    
-    if result.get("ok"):
-        return {
-            "status": "updated",
-            "message": f"Webhook set from '{current_url}' to '{webhook_endpoint}'",
-            "result": result
-        }
-    else:
-        return {
-            "status": "error",
-            "message": "Failed to set webhook",
-            "result": result
-        }
-
 
 async def process_update(update_data: dict):
-
-    _ = check_and_set_webhook(settings.TELEGRAM_BOT_TOKEN, settings.TELEGRAM_WEBHOOK_ENDPOINT)
-
     bot = Bot(token=settings.TELEGRAM_BOT_TOKEN)
     
     update = Update.de_json(update_data, bot=bot)
