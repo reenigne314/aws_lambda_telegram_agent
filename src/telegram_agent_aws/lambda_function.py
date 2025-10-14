@@ -6,8 +6,6 @@ from telegram.ext import ContextTypes
 
 from telegram_agent_aws.config import settings
 from telegram_agent_aws.infrastructure.telegram.handlers import handle_text, handle_voice, handle_photo
-from telegram_agent_aws.application.conversation_service.generate_response import get_agent_response
-
 
 
 def check_and_set_webhook(bot_token: str, webhook_endpoint: str) -> dict:
