@@ -3,6 +3,9 @@ FROM ghcr.io/astral-sh/uv:0.9.2 AS uv
 # First, bundle the dependencies into the task root.
 FROM public.ecr.aws/lambda/python:3.13 AS builder
 
+# Install build dependencies
+RUN yum install -y gcc-c++ && yum clean all
+
 # Enable bytecode compilation, to improve cold-start performance.
 ENV UV_COMPILE_BYTECODE=1
 
