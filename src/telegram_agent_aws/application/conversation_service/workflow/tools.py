@@ -1,11 +1,11 @@
 from functools import lru_cache
 
-from langchain_qdrant import QdrantVectorStore
-from langchain_openai import OpenAIEmbeddings
 from langchain_core.tools import create_retriever_tool
+from langchain_openai import OpenAIEmbeddings
+from langchain_qdrant import QdrantVectorStore
 
 from telegram_agent_aws.config import settings
-from telegram_agent_aws.infrastructure.qdrant_utils import get_qdrant_client
+from telegram_agent_aws.infrastructure.clients.qdrant import get_qdrant_client
 
 
 @lru_cache(maxsize=1)
@@ -26,5 +26,5 @@ def get_retriever_tool():
         name="retrieve_telegram_agent_aws_information_tool",
         description="Retrieve information about the Telegram Agent's background, academic journey, professional experience, major projects, philosophy, values, hobbies and personal interests",
     )
-    
+
     return retriever_tool

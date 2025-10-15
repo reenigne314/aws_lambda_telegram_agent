@@ -1,12 +1,11 @@
-from loguru import logger
-
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_openai import OpenAIEmbeddings
 from langchain_qdrant import QdrantVectorStore
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from loguru import logger
 
-from telegram_agent_aws.infrastructure.qdrant_utils import get_qdrant_client
 from telegram_agent_aws.config import settings
+from telegram_agent_aws.infrastructure.clients.qdrant import get_qdrant_client
 
 
 def generate_split_documents():

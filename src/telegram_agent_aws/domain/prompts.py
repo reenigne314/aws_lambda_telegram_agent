@@ -9,9 +9,7 @@ class Prompt:
         try:
             self.__prompt = opik.Prompt(name=name, prompt=prompt)
         except Exception:
-            logger.warning(
-                "Can't use Opik to version the prompt (probably due to missing or invalid credentials). Falling back to local prompt. The prompt is not versioned, but it's still usable."
-            )
+            logger.warning("Can't use Opik to version the prompt (probably due to missing or invalid credentials). Falling back to local prompt. The prompt is not versioned, but it's still usable.")
 
             self.__prompt = prompt
 

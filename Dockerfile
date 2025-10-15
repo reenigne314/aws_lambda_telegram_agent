@@ -33,4 +33,4 @@ COPY --from=builder ${LAMBDA_TASK_ROOT} ${LAMBDA_TASK_ROOT}
 COPY ./src/telegram_agent_aws ${LAMBDA_TASK_ROOT}/telegram_agent_aws
 
 # Set the AWS Lambda handler.
-CMD ["telegram_agent_aws.lambda_function.lambda_handler"]
+CMD ["telegram_agent_aws.infrastructure.lambda_function.lambda_handler"]

@@ -1,13 +1,12 @@
-import os
 import base64
+import os
 
 from telegram import Update
 from telegram.ext import ContextTypes
 
-from telegram_agent_aws.infrastructure.openai_utils import get_openai_client
-from telegram_agent_aws.infrastructure.elevenlabs_utils import get_elevenlabs_client
 from telegram_agent_aws.application.conversation_service.generate_response import get_agent_response
-
+from telegram_agent_aws.infrastructure.clients.elevenlabs import get_elevenlabs_client
+from telegram_agent_aws.infrastructure.clients.openai import get_openai_client
 
 openai_client = get_openai_client()
 elevenlabs_client = get_elevenlabs_client()
@@ -16,8 +15,7 @@ elevenlabs_client = get_elevenlabs_client()
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_message = update.message.text
 
-    response = get_agent_response(
-        {"messages": user_message}, user_id=update.message.from_user.id)
+    response = get_agent_response({"messages": user_message}, user_id=update.message.from_user.id)
 
     await send_response(update, context, response)
 
@@ -35,8 +33,7 @@ async def handle_voice(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
     os.remove(file_path)
 
-    response = get_agent_response(
-        {"messages": transcription.text}, user_id=update.message.from_user.id)
+    response = get_agent_response({"messages": transcription.text}, user_id=update.message.from_user.id)
 
     await send_response(update, context, response)
 
@@ -80,8 +77,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     combined_message = f"{user_caption} [IMAGE_ANALYSIS] {description}".strip()
 
     # Step 4: Invoke graph
-    response = get_agent_response(
-        {"messages": combined_message}, user_id=update.message.from_user.id)
+    response = get_agent_response({"messages": combined_message}, user_id=update.message.from_user.id)
 
     # Step 5: Add description as caption for the outgoing image response
     if "messages" in response and isinstance(response["messages"][-1], dict):
@@ -102,6 +98,6 @@ async def send_response(update: Update, context: ContextTypes.DEFAULT_TYPE, resp
         audio_bytes = response.get("audio_buffer")
         if audio_bytes:
             await update.message.reply_voice(voice=audio_bytes)
-            
+
     else:
         await update.message.reply_text("Sorry, I can't talk right now buddy! 😔")

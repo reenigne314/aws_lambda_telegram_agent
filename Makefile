@@ -1,37 +1,30 @@
-# Makefile for creating an AWS Lambda execution role
+ifeq (,$(wildcard .env))
+$(error .env file is missing. Please create one based on .env.example)
+endif
 
-ROLE_NAME := lambda-ex
-POLICY_DOC := file://trust-policy.json
+include .env
 
-.PHONY: all create-role clean index-qdrant
+CHECK_DIRS := .
 
-all: create-role
+# --- Ruff ---
 
-# Create trust policy document
-trust-policy.json:
-	@echo 'Creating trust policy document...'
-	@echo '{"Version": "2012-10-17",' > trust-policy.json
-	@echo '  "Statement": [{' >> trust-policy.json
-	@echo '    "Effect": "Allow",' >> trust-policy.json
-	@echo '    "Principal": {"Service": "lambda.amazonaws.com"},' >> trust-policy.json
-	@echo '    "Action": "sts:AssumeRole"' >> trust-policy.json
-	@echo '  }]' >> trust-policy.json
-	@echo '}' >> trust-policy.json
+format-fix:
+	uv run ruff format $(CHECK_DIRS) 
+	uv run ruff check --select I --fix
 
-# Create IAM role for Lambda
-create-role: trust-policy.json
-	@echo 'Creating IAM role "$(ROLE_NAME)"...'
-	aws iam create-role \
-	  --role-name $(ROLE_NAME) \
-	  --assume-role-policy-document $(POLICY_DOC)
-	@echo 'Role "$(ROLE_NAME)" created successfully.'
+lint-fix:
+	uv run ruff check --fix
 
-# Remove temporary files
-clean:
-	@rm -f trust-policy.json
-	@echo 'Cleaned up generated files.'
+format-check:
+	uv run ruff format --check $(CHECK_DIRS) 
+	uv run ruff check -e
+	uv run ruff check --select I -e
 
-# Index documents to Qdrant
+lint-check:
+	uv run ruff check $(CHECK_DIRS)
+
+# --- RAG Indexing ---
+
 index-qdrant:
 	@echo 'Indexing documents to Qdrant...'
 	uv run python -c "from telegram_agent_aws.application.rag_indexing_service.index_documents import index_documents; index_documents()"

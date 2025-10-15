@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     ELEVENLABS_API_KEY: str
     QDRANT_API_KEY: str
     QDRANT_URL: str
-    COMET_API_KEY: str 
+    COMET_API_KEY: str
     TELEGRAM_BOT_TOKEN: str
     TELEGRAM_WEBHOOK_ENDPOINT: str
 
@@ -26,5 +26,6 @@ class Settings(BaseSettings):
     OPIK_CONFIG_PATH: str = "/tmp/.opik.config"
 
     MONGODB_CONNECTION_STRING: str
+
 
 settings = Settings()

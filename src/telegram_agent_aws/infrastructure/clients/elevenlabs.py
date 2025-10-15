@@ -1,5 +1,5 @@
-import os
 from functools import lru_cache
+
 from elevenlabs.client import ElevenLabs
 
 from telegram_agent_aws.config import settings

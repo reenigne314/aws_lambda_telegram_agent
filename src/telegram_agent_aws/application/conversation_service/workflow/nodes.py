@@ -1,31 +1,23 @@
 import random
-from pydantic import BaseModel, Field
-import base64
-from io import BytesIO
-from uuid import uuid4
-from PIL import Image
 
-
-from langchain_core.messages import SystemMessage, RemoveMessage, HumanMessage
+from langchain_core.messages import HumanMessage, RemoveMessage, SystemMessage
 from langchain_openai import ChatOpenAI
+from pydantic import BaseModel, Field
 
-from telegram_agent_aws.domain.prompts import ROUTER_SYSTEM_PROMPT, SYSTEM_PROMPT
 from telegram_agent_aws.application.conversation_service.workflow.state import TelegramAgentState
 from telegram_agent_aws.application.conversation_service.workflow.tools import get_retriever_tool
-from telegram_agent_aws.infrastructure.openai_utils import get_openai_client
-from telegram_agent_aws.infrastructure.elevenlabs_utils import get_elevenlabs_client
-
 from telegram_agent_aws.config import settings
-
+from telegram_agent_aws.domain.prompts import ROUTER_SYSTEM_PROMPT, SYSTEM_PROMPT
+from telegram_agent_aws.infrastructure.clients.elevenlabs import get_elevenlabs_client
+from telegram_agent_aws.infrastructure.clients.openai import get_openai_client
 
 openai_client = get_openai_client()
 elevenlabs_client = get_elevenlabs_client()
 
 
 class RouterResponse(BaseModel):
-    response_type: str = Field(
-        description="The response type to give to the user. It must be one of: 'text' or 'audio'"
-    )
+    response_type: str = Field(description="The response type to give to the user. It must be one of: 'text' or 'audio'")
+
 
 def router_node(state: TelegramAgentState):
     llm = ChatOpenAI(model=settings.OPENAI_MODEL, api_key=settings.OPENAI_API_KEY)
@@ -37,7 +29,7 @@ def router_node(state: TelegramAgentState):
 
     if response.response_type == "text":
         if random.random() > 0.5:
-            # This is a way to give more realism to the bot. 
+            # This is a way to give more realism to the bot.
             # From time to time, the Telegram Agent will send voice notes,
             # even if the "response_type" is "text"!
             return {"response_type": "audio"}
@@ -69,10 +61,7 @@ def summarize_conversation_node(state: TelegramAgentState):
     summary = state.get("summary", "")
 
     if summary:
-        summary_message = (
-            f"This is summary of the conversation to date: {summary}\n\n"
-            "Extend the summary by taking into account the new messages above:"
-        )
+        summary_message = f"This is summary of the conversation to date: {summary}\n\nExtend the summary by taking into account the new messages above:"
 
     else:
         summary_message = "Create a summary of the conversation above:"
@@ -90,7 +79,8 @@ def generate_final_response_node(state: TelegramAgentState):
         audio = elevenlabs_client.text_to_speech.convert(
             text=state["messages"][-1].content,
             voice_id=settings.ELEVENLABS_VOICE_ID,
-            model_id=settings.ELEVENLABS_MODEL_ID)
+            model_id=settings.ELEVENLABS_MODEL_ID,
+        )
 
         audio_bytes = b"".join(audio)
 
