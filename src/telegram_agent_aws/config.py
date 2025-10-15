@@ -11,7 +11,6 @@ class Settings(BaseSettings):
     QDRANT_URL: str
     COMET_API_KEY: str
     TELEGRAM_BOT_TOKEN: str
-    TELEGRAM_WEBHOOK_ENDPOINT: str
 
     OPENAI_MODEL: str = "gpt-4o-mini"
     EMBEDDING_MODEL: str = "text-embedding-3-large"
