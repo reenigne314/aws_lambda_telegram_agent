@@ -9,7 +9,7 @@ from telegram_agent_aws.infrastructure.clients.qdrant import get_qdrant_client
 
 
 def generate_split_documents():
-    loader = PyPDFLoader("./data/karan_full_biography.pdf")
+    loader = PyPDFLoader("./data/bharadwaj_full_biography.pdf")
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
 
     docs = loader.load()

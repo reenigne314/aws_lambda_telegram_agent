@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     OPENAI_MODEL: str = "gpt-4o-mini"
     EMBEDDING_MODEL: str = "text-embedding-3-large"
 
-    ELEVENLABS_VOICE_ID: str = "T8lgQl6x5PSdhmmWx42m"
+    ELEVENLABS_VOICE_ID: str = "UulEBnFYFwHrxXbdo5DW"
     ELEVENLABS_MODEL_ID: str = "eleven_flash_v2_5"
 
     COMET_PROJECT: str = Field(
